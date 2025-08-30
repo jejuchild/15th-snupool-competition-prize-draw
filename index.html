@@ -44,9 +44,6 @@
     .chip button { all: unset; cursor: pointer; color: var(--muted); font-size: 14px; }
     .chip button:hover { color: var(--danger); }
 
-    .grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 16px; }
-    @media (max-width: 920px) { .grid { grid-template-columns: 1fr; } }
-
     .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
     .card h2 { margin: 0; padding: 14px 16px; font-size: 18px; border-bottom: 1px solid var(--border); letter-spacing: .2px; }
     .card .body { padding: 16px; }
@@ -57,8 +54,6 @@
     }
     input:focus { border-color: color-mix(in srgb, var(--accent) 60%, #fff 0%); box-shadow: 0 0 0 3px rgba(23, 179, 255, .1); }
 
-    .row { display: grid; grid-template-columns: 1fr 120px 120px; gap: 10px; }
-    .row + .row { margin-top: 10px; }
     .btn { cursor: pointer; border: 1px solid var(--border); background: #0f1720; color: var(--text); border-radius: 10px; padding: 10px 12px; font-weight: 600; }
     .btn:hover { background: #111f2a; }
     .btn-primary { background: linear-gradient(180deg, #0a78a8 0%, #095e84 100%); border-color: #0d7aab; }
@@ -84,10 +79,10 @@
     /* Modal */
     .modal { position: fixed; inset: 0; display: none; place-items: center; background: rgba(0,0,0,.6); z-index: 50; }
     .modal.show { display: grid; }
-    .modal .inner { width: min(720px, 92vw); background: radial-gradient(600px 300px at 50% 0%, #0c1a24 0%, transparent 60%), var(--panel); border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); overflow: hidden; }
-    .modal .stage { padding: 24px 18px 8px; text-align: center; }
-    .big { font-size: clamp(64px, 8vw, 120px); font-weight: 800; letter-spacing: .06em; font-variant-numeric: tabular-nums; line-height: 1; text-shadow: 0 6px 28px rgba(0,0,0,.6); }
-    .lead { margin-top: 6px; font-size: 14px; color: var(--muted); }
+    .modal .inner { width: min(880px, 94vw); background: radial-gradient(600px 300px at 50% 0%, #0c1a24 0%, transparent 60%), var(--panel); border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); overflow: hidden; }
+    .modal .stage { padding: 24px 18px 8px; }
+    .big { font-size: clamp(64px, 8vw, 120px); font-weight: 800; letter-spacing: .06em; font-variant-numeric: tabular-nums; line-height: 1; text-shadow: 0 6px 28px rgba(0,0,0,.6); text-align:center; }
+    .lead { margin-top: 6px; font-size: 14px; color: var(--muted); text-align:center; }
     .glow { background: linear-gradient(90deg, transparent, rgba(23,179,255,.3), transparent); height: 2px; margin: 12px 0; transform: translateX(-100%); animation: scan 2.6s linear infinite; }
     @keyframes scan { to { transform: translateX(100%); } }
     .modal .actions { display: flex; gap: 10px; padding: 12px 16px 16px; justify-content: center; border-top: 1px solid var(--border); }
@@ -102,8 +97,15 @@
 <body>
   <header>
     <div class="wrap">
-      <h1>제15회 SNUPOOL배 대학부 수영대회 경품 추첨</h1>
-      <div class="subtitle">GitHub Pages에서 바로 배포 가능한 단일 HTML – 번호 중복 방지 · 부재 시 삭제 후 재추첨 지원</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h1>제15회 SNUPOOL배 대학부 수영대회 경품 추첨</h1>
+          <div class="subtitle">GitHub Pages 배포용 · 번호 중복 방지 · 재추첨/삭제 지원</div>
+        </div>
+        <div>
+          <button class="btn" id="openSettingsBtn" title="총 경품 번호와 경품 종류/개수 설정">설정</button>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -124,53 +126,26 @@
       </div>
     </section>
 
-    <div class="grid">
-      <!-- Settings -->
-      <section class="card">
-        <h2>설정</h2>
-        <div class="body">
-          <label for="totalCount">총 경품 번호 (1부터 시작)</label>
-          <input type="number" id="totalCount" min="1" step="1" placeholder="예: 300" />
-          <div class="hint" style="margin-top:6px;">실제 배부된 번호의 최대값을 입력하세요. (예: 1~300)</div>
-
-          <hr style="border: none; border-top:1px solid var(--border); margin:16px 0;"/>
-
-          <div style="display:flex; gap:8px; align-items:end;">
-            <div style="flex:1;">
-              <label for="prizeName">경품 종류</label>
-              <input type="text" id="prizeName" placeholder="예: 수영모, 수경, 타월" />
-            </div>
-            <div style="width:140px;">
-              <label for="prizeQty">개수</label>
-              <input type="number" id="prizeQty" min="1" step="1" value="1" />
-            </div>
-            <button class="btn btn-primary" id="addPrizeBtn">추가</button>
-          </div>
-          <div class="hint" style="margin-top:6px;">경품은 하나씩 추첨됩니다. 동일 경품의 당첨 인원만큼 반복 추첨합니다.</div>
+    <!-- Prize table only (메인에서는 추첨만) -->
+    <section class="card">
+      <h2>경품 목록</h2>
+      <div class="body">
+        <div class="hint" style="margin-bottom:8px;">각 경품의 <strong>추첨</strong> 버튼으로 1명씩 뽑습니다. (설정 변경은 우상단 <strong>설정</strong> 버튼)</div>
+        <div style="overflow:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:34%">경품</th>
+                <th style="width:10%">개수</th>
+                <th>당첨자</th>
+                <th style="width:110px">추첨</th>
+              </tr>
+            </thead>
+            <tbody id="prizeTbody"></tbody>
+          </table>
         </div>
-      </section>
-
-      <!-- Prize table -->
-      <section class="card">
-        <h2>경품 목록</h2>
-        <div class="body">
-          <div class="hint" style="margin-bottom:8px;">각 경품의 <strong>추첨</strong> 버튼으로 1명씩 뽑습니다. 당첨자는 카드에서 X로 삭제하여 재추첨할 수 있습니다.</div>
-          <div style="overflow:auto;">
-            <table>
-              <thead>
-                <tr>
-                  <th style="width:34%">경품</th>
-                  <th style="width:10%">개수</th>
-                  <th>당첨자</th>
-                  <th style="width:210px">조작</th>
-                </tr>
-              </thead>
-              <tbody id="prizeTbody"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-    </div>
+      </div>
+    </section>
 
     <div class="footer">
       <div class="pill">남은 번호: <strong id="remainCount" style="margin-left:6px;">-</strong></div>
@@ -180,20 +155,74 @@
     </div>
   </main>
 
-  <!-- Modal for drawing -->
+  <!-- Draw Modal -->
   <div class="modal" id="drawModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="inner">
       <div class="stage">
         <div class="glow"></div>
         <div id="modalTitle" class="lead">추첨 중…</div>
         <div id="spinNumber" class="big">—</div>
-        <div class="lead" id="modalSub">남은 번호 <span id="leftInPool">0</span>개</div>
+        <div class="lead" id="modalSub">남은 번호 <span id="leftInPool">0</span>개 · <span class="hint">재추첨 시 현재 번호가 '뽑힌 번호'에 저장됩니다</span></div>
         <div class="glow"></div>
       </div>
       <div class="actions">
         <button class="btn" id="retryBtn" title="부재 등으로 다시 뽑기">재추첨</button>
         <button class="btn btn-primary" id="confirmBtn">확정</button>
         <button class="btn btn-ghost" id="cancelBtn">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="inner">
+      <div class="stage">
+        <div class="glow"></div>
+        <div id="settingsTitle" class="lead" style="text-align:left;">설정</div>
+        <div style="display:grid; gap:16px; padding: 0 6px 10px;">
+          <div>
+            <label for="settingsTotalCount">총 경품 번호 (1부터 시작)</label>
+            <input type="number" id="settingsTotalCount" min="1" step="1" placeholder="예: 300" />
+            <div class="hint" style="margin-top:6px;">실제 배부된 번호의 최대값을 입력하세요. (예: 1~300)</div>
+          </div>
+
+          <div style="display:flex; gap:8px; align-items:end;">
+            <div style="flex:1;">
+              <label for="settingsPrizeName">경품 종류</label>
+              <input type="text" id="settingsPrizeName" placeholder="예: 수영모, 수경, 타월" />
+            </div>
+            <div style="width:140px;">
+              <label for="settingsPrizeQty">개수</label>
+              <input type="number" id="settingsPrizeQty" min="1" step="1" value="1" />
+            </div>
+            <button class="btn btn-primary" id="settingsAddPrizeBtn">추가</button>
+          </div>
+
+          <div class="card" style="border-radius:12px;">
+            <h2 style="font-size:16px;">경품 목록 관리</h2>
+            <div class="body">
+              <div class="hint" style="margin-bottom:8px;">여기서는 경품을 추가/삭제만 할 수 있습니다. (당첨자 삭제는 메인에서)</div>
+              <div style="overflow:auto;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="width:60%">경품</th>
+                      <th style="width:15%">개수</th>
+                      <th style="width:25%">조작</th>
+                    </tr>
+                  </thead>
+                  <tbody id="settingsPrizeTbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="glow"></div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-danger" id="settingsResetBtn" title="모든 데이터 초기화">전체 초기화</button>
+        <button class="btn" id="settingsCloseBtn">닫기</button>
+        <button class="btn btn-primary" id="settingsSaveBtn">저장</button>
       </div>
     </div>
   </div>
@@ -207,11 +236,7 @@
     const $ = (sel) => document.querySelector(sel);
     const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
-    // Elements
-    const totalCountEl = $('#totalCount');
-    const prizeNameEl = $('#prizeName');
-    const prizeQtyEl = $('#prizeQty');
-    const prizeTbody = $('#prizeTbody');
+    // Elements (main)
     const drawnChips = $('#drawnChips');
     const remainCountEl = $('#remainCount');
     const statline = $('#statline');
@@ -220,7 +245,10 @@
     const importBtn = $('#importBtn');
     const resetBtn  = $('#resetBtn');
 
-    // Modal refs
+    // Prize table (main)
+    const prizeTbody = $('#prizeTbody');
+
+    // Draw Modal refs
     const drawModal = $('#drawModal');
     const spinNumberEl = $('#spinNumber');
     const leftInPoolEl = $('#leftInPool');
@@ -233,6 +261,18 @@
     let currentPrizeId = null;
     let spinning = false;
     let finalPick = null;
+
+    // Settings Modal refs
+    const openSettingsBtn = $('#openSettingsBtn');
+    const settingsModal = $('#settingsModal');
+    const settingsTotalEl = $('#settingsTotalCount');
+    const settingsPrizeNameEl = $('#settingsPrizeName');
+    const settingsPrizeQtyEl = $('#settingsPrizeQty');
+    const settingsAddPrizeBtn = $('#settingsAddPrizeBtn');
+    const settingsPrizeTbody = $('#settingsPrizeTbody');
+    const settingsResetBtn = $('#settingsResetBtn');
+    const settingsCloseBtn = $('#settingsCloseBtn');
+    const settingsSaveBtn = $('#settingsSaveBtn');
 
     // ======= Helpers =======
     const pad = (n) => {
@@ -251,7 +291,6 @@
     const getAvailable = () => {
       const total = state.totalCount|0;
       if (!total) return [];
-      // Use lazy O(n) diff - simple and safe for <=10k
       const drawnSet = new Set(state.drawn);
       const arr = [];
       for (let i=1;i<=total;i++){ if (!drawnSet.has(i)) arr.push(i); }
@@ -262,10 +301,7 @@
 
     const nextId = () => 'p_' + Math.random().toString(36).slice(2,10);
 
-    const announce = (msg) => {
-      // lightweight toast via alert-like non-blocking
-      console.log(msg);
-    }
+    const announce = (msg) => console.log(msg);
 
     // ======= Rendering =======
     function renderDrawn() {
@@ -281,7 +317,6 @@
           const chip = document.createElement('span');
           chip.className = 'chip';
           chip.innerHTML = `<span>#${pad(n)}</span>`;
-          // removable: find prize
           const holder = findPrizeByWinner(n);
           const delBtn = document.createElement('button');
           delBtn.title = '이 번호 삭제 (재추첨 가능)';
@@ -297,7 +332,7 @@
       leftInPoolEl.textContent = remain;
 
       const total = state.totalCount|0;
-      statline.textContent = total ? `총 ${total}개 중 당첨 ${state.drawn.length}개 · 남은 ${remain}개` : '총 경품 번호를 설정하세요.';
+      statline.textContent = total ? `총 ${total}개 중 당첨 ${state.drawn.length}개 · 남은 ${remain}개` : '상단 우측 [설정]에서 총 경품 번호를 설정하세요.';
     }
 
     function renderPrizes() {
@@ -305,7 +340,7 @@
       if (state.prizes.length === 0) {
         const tr = document.createElement('tr');
         const td = document.createElement('td');
-        td.colSpan = 4; td.className = 'hint'; td.textContent = '경품을 추가하세요.';
+        td.colSpan = 4; td.className = 'hint'; td.textContent = '경품을 추가하려면 상단 우측 [설정]을 눌러주세요.';
         tr.appendChild(td); prizeTbody.appendChild(tr); return;
       }
 
@@ -316,6 +351,7 @@
         tdName.innerHTML = `<strong>${escapeHtml(p.name)}</strong>`;
 
         const tdQty = document.createElement('td');
+        td.textContent = p.qty; // minor fix below
         tdQty.textContent = p.qty;
 
         const tdWinners = document.createElement('td');
@@ -345,33 +381,49 @@
         if ((p.winners?.length || 0) >= p.qty) {
           drawBtn.disabled = true; drawBtn.textContent = '완료';
         }
-
-        const delBtn = document.createElement('button');
-        delBtn.className = 'btn btn-danger'; delBtn.style.marginLeft = '8px';
-        delBtn.textContent = '경품 삭제';
-        delBtn.addEventListener('click', () => deletePrize(p.id));
-
-        tdAct.append(drawBtn, delBtn);
+        tdAct.append(drawBtn);
 
         tr.append(tdName, tdQty, tdWinners, tdAct);
         prizeTbody.appendChild(tr);
       }
     }
 
+    function renderSettingsPrizes() {
+      settingsPrizeTbody.innerHTML = '';
+      if (state.prizes.length === 0) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 3; td.className = 'hint'; td.textContent = '경품이 없습니다. 위 입력에서 추가하세요.';
+        tr.appendChild(td); settingsPrizeTbody.appendChild(tr); return;
+      }
+      for (const p of state.prizes) {
+        const tr = document.createElement('tr');
+        const tdName = document.createElement('td'); tdName.innerHTML = `<strong>${escapeHtml(p.name)}</strong>`;
+        const tdQty = document.createElement('td'); tdQty.textContent = p.qty;
+        const tdAct = document.createElement('td');
+        const delBtn = document.createElement('button'); delBtn.className = 'btn btn-danger'; delBtn.textContent = '경품 삭제';
+        delBtn.addEventListener('click', () => deletePrize(p.id));
+        tdAct.append(delBtn);
+        tr.append(tdName, tdQty, tdAct);
+        settingsPrizeTbody.appendChild(tr);
+      }
+    }
+
     function renderAll() {
-      totalCountEl.value = state.totalCount || '';
       renderDrawn();
       renderPrizes();
+      // reflect settings fields if modal is open
+      if (settingsTotalEl) settingsTotalEl.value = state.totalCount || '';
+      renderSettingsPrizes();
       save();
     }
 
     // ======= Actions =======
-    function addPrize() {
-      const name = (prizeNameEl.value || '').trim();
-      const qty = Math.max(1, parseInt(prizeQtyEl.value || '1', 10));
-      if (!name) { alert('경품 이름을 입력하세요.'); prizeNameEl.focus(); return; }
-      state.prizes.push({ id: nextId(), name, qty, winners: [] });
-      prizeNameEl.value = ''; prizeQtyEl.value = '1';
+    function addPrize(name, qty) {
+      const _name = (name || '').trim();
+      const _qty = Math.max(1, parseInt(qty || '1', 10));
+      if (!_name) { alert('경품 이름을 입력하세요.'); return; }
+      state.prizes.push({ id: nextId(), name: _name, qty: _qty, winners: [] });
       renderAll();
     }
 
@@ -380,7 +432,6 @@
       if (!p) return;
       const confirmText = p.winners?.length ? `이 경품과 당첨자 ${p.winners.length}명을 모두 삭제할까요? 삭제 시 번호가 다시 풀에 반환됩니다.` : '이 경품을 삭제할까요?';
       if (!confirm(confirmText)) return;
-      // Return winners to pool by removing from global drawn
       for (const n of (p.winners||[])) {
         const idx = state.drawn.indexOf(n);
         if (idx >= 0) state.drawn.splice(idx,1);
@@ -390,7 +441,6 @@
     }
 
     function removeWinner(n, prizeId) {
-      // remove from prize winners
       if (prizeId) {
         const p = getPrize(prizeId);
         if (p) {
@@ -398,7 +448,6 @@
           p.winners = (p.winners||[]).filter(x => x !== n);
         }
       } else {
-        // Find the prize owning this number
         const holder = findPrizeByWinner(n);
         if (holder) {
           if (!confirm(`#${pad(n)} (경품: ${holder.name}) 당첨자를 삭제할까요?`)) return;
@@ -407,29 +456,25 @@
           if (!confirm(`#${pad(n)} 번호를 삭제할까요?`)) return;
         }
       }
-      // remove from global drawn
       const idx = state.drawn.indexOf(n);
       if (idx >= 0) state.drawn.splice(idx,1);
       renderAll();
     }
 
-    function findPrizeByWinner(n) {
-      return state.prizes.find(p => (p.winners||[]).includes(n));
-    }
+    function findPrizeByWinner(n) { return state.prizes.find(p => (p.winners||[]).includes(n)); }
 
     function beginDraw(prizeId) {
       currentPrizeId = prizeId;
       const p = getPrize(prizeId);
       if (!p) return;
       if ((p.winners?.length||0) >= p.qty) { alert('이미 해당 경품의 추첨이 완료되었습니다.'); return; }
-      if ((state.totalCount|0) <= 0) { alert('먼저 총 경품 번호를 설정하세요.'); return; }
+      if ((state.totalCount|0) <= 0) { alert('먼저 [설정]에서 총 경품 번호를 설정하세요.'); return; }
       if (getAvailable().length <= 0) { alert('남은 번호가 없습니다.'); return; }
-
-      openModal();
+      openDrawModal();
       spin();
     }
 
-    function openModal() {
+    function openDrawModal() {
       drawModal.classList.add('show');
       modalTitle.textContent = '추첨 중…';
       modalSub.style.visibility = 'visible';
@@ -437,13 +482,13 @@
       finalPick = null; spinning = true;
     }
 
-    function closeModal() { drawModal.classList.remove('show'); }
+    function closeDrawModal() { drawModal.classList.remove('show'); }
 
     function randomFrom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
     function spin() {
       const available = getAvailable();
-      if (available.length === 0) { alert('남은 번호가 없습니다.'); closeModal(); return; }
+      if (available.length === 0) { alert('남은 번호가 없습니다.'); closeDrawModal(); return; }
       leftInPoolEl.textContent = available.length;
 
       const start = performance.now();
@@ -452,20 +497,22 @@
 
       function tick(now) {
         const t = Math.min(1, (now - start) / duration);
-        const speed = 30 + 220 * (1 - easeOut(t)); // slows toward end
+        const speed = 30 + 220 * (1 - easeOut(t));
         if ((now % speed) < 16) {
           spinNumberEl.textContent = pad(randomFrom(available));
         }
         if (t < 1 && spinning) {
           requestAnimationFrame(tick);
         } else {
-          // Finalize
+          // Finalize pick
           const available2 = getAvailable();
-          if (available2.length === 0) { alert('남은 번호가 없습니다.'); closeModal(); return; }
+          if (available2.length === 0) { alert('남은 번호가 없습니다.'); closeDrawModal(); return; }
           finalPick = randomFrom(available2);
           spinNumberEl.textContent = pad(finalPick);
           modalTitle.textContent = '당첨 번호';
-          confirmBtn.disabled = false; retryBtn.disabled = available2.length <= 1; // can retry only if there is another number
+          confirmBtn.disabled = false; 
+          retryBtn.disabled = available2.length <= 1; // can retry only if another number exists
+          spinning = false; // <-- 중요: 재추첨 동작하도록 고침
         }
       }
       requestAnimationFrame(tick);
@@ -476,38 +523,62 @@
       if (!Number.isInteger(finalPick)) return;
       const p = getPrize(currentPrizeId);
       if (!p) return;
-      // Commit winner
       p.winners = p.winners || [];
       if (p.winners.length >= p.qty) { alert('이미 해당 경품의 추첨이 완료되었습니다.'); return; }
       if (!state.drawn.includes(finalPick)) state.drawn.push(finalPick);
       p.winners.push(finalPick);
       announce(`${p.name} 당첨: #${pad(finalPick)}`);
       renderAll();
-      // Ready for next draw of the same prize: keep modal open to allow quick reroll? UX: close automatically
-      closeModal();
+      closeDrawModal();
     });
 
+    // 요청사항 2: 재추첨해도 현재 번호를 "뽑힌 번호"에 저장
     retryBtn.addEventListener('click', () => {
-      if (!spinning) { // re-spin with a different final
-        spinning = true; finalPick = null; confirmBtn.disabled = true; retryBtn.disabled = true; modalTitle.textContent = '재추첨 중…';
-        spin();
+      if (spinning) return; // 스핀 중에는 무시
+      // 현재 표시된 번호를 글로벌 drawn에 저장(해당 경품 당첨자로는 확정하지 않음)
+      if (Number.isInteger(finalPick) && !state.drawn.includes(finalPick)) {
+        state.drawn.push(finalPick);
+        announce(`재추첨: 기존 번호 #${pad(finalPick)}는 뽑힌 번호에 저장됨`);
+        renderDrawn(); // 전체 렌더링까지는 필요없고 배너만 업데이트
       }
+      // 다음 번호 스핀
+      spinning = true; finalPick = null; confirmBtn.disabled = true; retryBtn.disabled = true; modalTitle.textContent = '재추첨 중…';
+      spin();
     });
 
-    cancelBtn.addEventListener('click', closeModal);
-    drawModal.addEventListener('click', (e)=>{ if (e.target === drawModal) closeModal(); });
+    cancelBtn.addEventListener('click', closeDrawModal);
+    drawModal.addEventListener('click', (e)=>{ if (e.target === drawModal) closeDrawModal(); });
 
-    // ======= Events =======
-    $('#addPrizeBtn').addEventListener('click', addPrize);
-    totalCountEl.addEventListener('change', () => { state.totalCount = Math.max(0, parseInt(totalCountEl.value||'0',10)); renderAll(); });
+    // ======= Settings Modal =======
+    function openSettings(){ settingsModal.classList.add('show'); renderAll(); }
+    function closeSettings(){ settingsModal.classList.remove('show'); }
 
+    openSettingsBtn.addEventListener('click', openSettings);
+    settingsCloseBtn.addEventListener('click', closeSettings);
+    settingsSaveBtn.addEventListener('click', () => { save(); closeSettings(); });
+
+    settingsAddPrizeBtn.addEventListener('click', () => {
+      addPrize(settingsPrizeNameEl.value, settingsPrizeQtyEl.value);
+      settingsPrizeNameEl.value = ''; settingsPrizeQtyEl.value = '1';
+    });
+
+    settingsTotalEl.addEventListener('change', () => {
+      state.totalCount = Math.max(0, parseInt(settingsTotalEl.value||'0',10));
+      renderAll();
+    });
+
+    settingsResetBtn.addEventListener('click', () => {
+      if (!confirm('정말 초기화할까요? 모든 당첨 기록과 경품 설정이 삭제됩니다.')) return;
+      state = { totalCount: 0, prizes: [], drawn: [] }; renderAll();
+    });
+
+    // ======= Export/Import =======
     exportBtn.addEventListener('click', () => {
       const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = 'snupool_raffle_state.json'; a.click();
       URL.revokeObjectURL(url);
     });
-
     importBtn.addEventListener('click', async () => {
       const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'application/json';
       inp.onchange = async () => {
@@ -522,30 +593,634 @@
       inp.click();
     });
 
-    resetBtn.addEventListener('click', () => {
+    // ======= Utils =======
+    function escapeHtml(s){ return s.replace(/[&<>"']/g, (m)=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); }
+
+    // ======= Init =======
+    load();
+    state.prizes = (state.prizes||[]).map(p=>({ id: p.id||nextId(), name: String(p.name||''), qty: Math.max(1, p.qty|0), winners: Array.isArray(p.winners) ? p.winners.filter(Number.isInteger) : [] }));
+    state.drawn = Array.isArray(state.drawn) ? state.drawn.filter(Number.isInteger) : [];
+
+    // Seed small example first time only
+    if (!state.totalCount && state.prizes.length === 0 && state.drawn.length === 0) {
+      state.totalCount = 300;
+      state.prizes.push({ id: nextId(), name: '수영모', qty: 3, winners: [] });
+    }
+
+    renderAll();
+  </script>
+</body>
+</html>
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>제15회 SNUPOOL배 대학부 수영대회 경품 추첨</title>
+  <meta name="description" content="제15회 SNUPOOL배 대학부 수영대회 경품 추첨 프로그램" />
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #111923;
+      --text: #e6edf3;
+      --muted: #98a2b3;
+      --accent: #17b3ff;
+      --accent-2: #7cffc4;
+      --danger: #ff5d5d;
+      --chip: #17212b;
+      --border: #223140;
+      --shadow: 0 6px 24px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; background: radial-gradient(1000px 600px at 20% -10%, #11202d 0%, var(--bg) 40%),
+      radial-gradient(800px 500px at 120% 20%, #0d1b24 0%, transparent 40%), var(--bg);
+      color: var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, Apple SD Gothic Neo, "Apple SD 산돌고딕 Neo", "Malgun Gothic", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    header {
+      position: sticky; top: 0; z-index: 20; backdrop-filter: saturate(140%) blur(8px);
+      background: color-mix(in hsl, var(--bg) 82%, transparent);
+      border-bottom: 1px solid var(--border);
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 20px; }
+    h1 { margin: 8px 0 6px; font-size: 24px; letter-spacing: .2px; }
+    .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+
+    .banner {
+      margin: 14px 0 10px; padding: 14px; background: linear-gradient(180deg, #0f1822 0%, #0e141c 60%);
+      border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow);
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: var(--chip); border: 1px solid var(--border); font-weight: 600; font-variant-numeric: tabular-nums; }
+    .chip button { all: unset; cursor: pointer; color: var(--muted); font-size: 14px; }
+    .chip button:hover { color: var(--danger); }
+
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .card h2 { margin: 0; padding: 14px 16px; font-size: 18px; border-bottom: 1px solid var(--border); letter-spacing: .2px; }
+    .card .body { padding: 16px; }
+
+    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+    input[type="number"], input[type="text"], textarea, select {
+      width: 100%; background: #0d141c; color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; outline: none; font-size: 15px;
+    }
+    input:focus { border-color: color-mix(in srgb, var(--accent) 60%, #fff 0%); box-shadow: 0 0 0 3px rgba(23, 179, 255, .1); }
+
+    .btn { cursor: pointer; border: 1px solid var(--border); background: #0f1720; color: var(--text); border-radius: 10px; padding: 10px 12px; font-weight: 600; }
+    .btn:hover { background: #111f2a; }
+    .btn-primary { background: linear-gradient(180deg, #0a78a8 0%, #095e84 100%); border-color: #0d7aab; }
+    .btn-primary:hover { filter: brightness(1.1); }
+    .btn-ghost { background: transparent; }
+    .btn-danger { background: #2c0e12; border-color: #3a1015; color: #ffb3b3; }
+    .btn-danger:hover { background: #3a1015; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    th, td { border-bottom: 1px solid var(--border); padding: 12px; text-align: left; vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; }
+    tbody tr:hover { background: #0e1620; }
+
+    .winners { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag { display: inline-flex; gap: 6px; align-items: center; background: #0d1420; border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .tag small { font-weight: 600; color: var(--muted); }
+    .tag button { all: unset; cursor: pointer; color: var(--muted); }
+    .tag button:hover { color: var(--danger); }
+
+    .hint { color: var(--muted); font-size: 13px; }
+    .statline { display: flex; gap: 12px; align-items: center; margin-top: 10px; font-size: 13px; color: var(--muted); }
+
+    /* Modal */
+    .modal { position: fixed; inset: 0; display: none; place-items: center; background: rgba(0,0,0,.6); z-index: 50; }
+    .modal.show { display: grid; }
+    .modal .inner { width: min(880px, 94vw); background: radial-gradient(600px 300px at 50% 0%, #0c1a24 0%, transparent 60%), var(--panel); border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); overflow: hidden; }
+    .modal .stage { padding: 24px 18px 8px; }
+    .big { font-size: clamp(64px, 8vw, 120px); font-weight: 800; letter-spacing: .06em; font-variant-numeric: tabular-nums; line-height: 1; text-shadow: 0 6px 28px rgba(0,0,0,.6); text-align:center; }
+    .lead { margin-top: 6px; font-size: 14px; color: var(--muted); text-align:center; }
+    .glow { background: linear-gradient(90deg, transparent, rgba(23,179,255,.3), transparent); height: 2px; margin: 12px 0; transform: translateX(-100%); animation: scan 2.6s linear infinite; }
+    @keyframes scan { to { transform: translateX(100%); } }
+    .modal .actions { display: flex; gap: 10px; padding: 12px 16px 16px; justify-content: center; border-top: 1px solid var(--border); }
+
+    .pill { display: inline-flex; align-items: center; gap: 8px; background: #0b1420; border: 1px solid var(--border); padding: 6px 10px; border-radius: 999px; }
+
+    .footer { margin: 16px 0 10px; display:flex; justify-content: space-between; align-items:center; gap: 10px; color: var(--muted); font-size: 12px; }
+    .links { display:flex; gap: 8px; }
+    .links a { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h1>제15회 SNUPOOL배 대학부 수영대회 경품 추첨</h1>
+          <div class="subtitle">GitHub Pages 배포용 · 번호 중복 방지 · 재추첨/삭제 지원</div>
+        </div>
+        <div>
+          <button class="btn" id="openSettingsBtn" title="총 경품 번호와 경품 종류/개수 설정">설정</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- Drawn numbers banner -->
+    <section class="banner" id="banner">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <div>
+          <div style="font-weight:700;margin-bottom:8px;">지금까지 뽑힌 번호</div>
+          <div id="drawnChips" class="chips" aria-live="polite"></div>
+          <div class="statline" id="statline"></div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-ghost" id="exportBtn">내보내기</button>
+          <button class="btn" id="importBtn">가져오기</button>
+          <button class="btn btn-danger" id="resetBtn" title="모든 당첨 기록과 설정을 초기화">전체 초기화</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Prize table only (메인에서는 추첨만) -->
+    <section class="card">
+      <h2>경품 목록</h2>
+      <div class="body">
+        <div class="hint" style="margin-bottom:8px;">각 경품의 <strong>추첨</strong> 버튼으로 1명씩 뽑습니다. (설정 변경은 우상단 <strong>설정</strong> 버튼)</div>
+        <div style="overflow:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:34%">경품</th>
+                <th style="width:10%">개수</th>
+                <th>당첨자</th>
+                <th style="width:110px">추첨</th>
+              </tr>
+            </thead>
+            <tbody id="prizeTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">
+      <div class="pill">남은 번호: <strong id="remainCount" style="margin-left:6px;">-</strong></div>
+      <div class="links">
+        <span>저장: 브라우저 LocalStorage 자동 저장</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- Draw Modal -->
+  <div class="modal" id="drawModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="inner">
+      <div class="stage">
+        <div class="glow"></div>
+        <div id="modalTitle" class="lead">추첨 중…</div>
+        <div id="spinNumber" class="big">—</div>
+        <div class="lead" id="modalSub">남은 번호 <span id="leftInPool">0</span>개 · <span class="hint">재추첨 시 현재 번호가 '뽑힌 번호'에 저장됩니다</span></div>
+        <div class="glow"></div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="retryBtn" title="부재 등으로 다시 뽑기">재추첨</button>
+        <button class="btn btn-primary" id="confirmBtn">확정</button>
+        <button class="btn btn-ghost" id="cancelBtn">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="inner">
+      <div class="stage">
+        <div class="glow"></div>
+        <div id="settingsTitle" class="lead" style="text-align:left;">설정</div>
+        <div style="display:grid; gap:16px; padding: 0 6px 10px;">
+          <div>
+            <label for="settingsTotalCount">총 경품 번호 (1부터 시작)</label>
+            <input type="number" id="settingsTotalCount" min="1" step="1" placeholder="예: 300" />
+            <div class="hint" style="margin-top:6px;">실제 배부된 번호의 최대값을 입력하세요. (예: 1~300)</div>
+          </div>
+
+          <div style="display:flex; gap:8px; align-items:end;">
+            <div style="flex:1;">
+              <label for="settingsPrizeName">경품 종류</label>
+              <input type="text" id="settingsPrizeName" placeholder="예: 수영모, 수경, 타월" />
+            </div>
+            <div style="width:140px;">
+              <label for="settingsPrizeQty">개수</label>
+              <input type="number" id="settingsPrizeQty" min="1" step="1" value="1" />
+            </div>
+            <button class="btn btn-primary" id="settingsAddPrizeBtn">추가</button>
+          </div>
+
+          <div class="card" style="border-radius:12px;">
+            <h2 style="font-size:16px;">경품 목록 관리</h2>
+            <div class="body">
+              <div class="hint" style="margin-bottom:8px;">여기서는 경품을 추가/삭제만 할 수 있습니다. (당첨자 삭제는 메인에서)</div>
+              <div style="overflow:auto;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="width:60%">경품</th>
+                      <th style="width:15%">개수</th>
+                      <th style="width:25%">조작</th>
+                    </tr>
+                  </thead>
+                  <tbody id="settingsPrizeTbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="glow"></div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-danger" id="settingsResetBtn" title="모든 데이터 초기화">전체 초기화</button>
+        <button class="btn" id="settingsCloseBtn">닫기</button>
+        <button class="btn btn-primary" id="settingsSaveBtn">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ======= State =======
+    const STORAGE_KEY = 'snupool-raffle-v1';
+    /** @type {{ totalCount:number, prizes:Array<{id:string, name:string, qty:number, winners:number[]}>, drawn:number[] }} */
+    let state = { totalCount: 0, prizes: [], drawn: [] };
+
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+    // Elements (main)
+    const drawnChips = $('#drawnChips');
+    const remainCountEl = $('#remainCount');
+    const statline = $('#statline');
+
+    const exportBtn = $('#exportBtn');
+    const importBtn = $('#importBtn');
+    const resetBtn  = $('#resetBtn');
+
+    // Prize table (main)
+    const prizeTbody = $('#prizeTbody');
+
+    // Draw Modal refs
+    const drawModal = $('#drawModal');
+    const spinNumberEl = $('#spinNumber');
+    const leftInPoolEl = $('#leftInPool');
+    const modalTitle = $('#modalTitle');
+    const modalSub = $('#modalSub');
+    const confirmBtn = $('#confirmBtn');
+    const retryBtn = $('#retryBtn');
+    const cancelBtn = $('#cancelBtn');
+
+    let currentPrizeId = null;
+    let spinning = false;
+    let finalPick = null;
+
+    // Settings Modal refs
+    const openSettingsBtn = $('#openSettingsBtn');
+    const settingsModal = $('#settingsModal');
+    const settingsTotalEl = $('#settingsTotalCount');
+    const settingsPrizeNameEl = $('#settingsPrizeName');
+    const settingsPrizeQtyEl = $('#settingsPrizeQty');
+    const settingsAddPrizeBtn = $('#settingsAddPrizeBtn');
+    const settingsPrizeTbody = $('#settingsPrizeTbody');
+    const settingsResetBtn = $('#settingsResetBtn');
+    const settingsCloseBtn = $('#settingsCloseBtn');
+    const settingsSaveBtn = $('#settingsSaveBtn');
+
+    // ======= Helpers =======
+    const pad = (n) => {
+      const digits = String(state.totalCount || 0).length;
+      return String(n).padStart(digits, '0');
+    }
+
+    const save = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const load = () => {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) state = JSON.parse(raw);
+      } catch(e){ console.warn('Load failed', e); }
+    }
+
+    const getAvailable = () => {
+      const total = state.totalCount|0;
+      if (!total) return [];
+      const drawnSet = new Set(state.drawn);
+      const arr = [];
+      for (let i=1;i<=total;i++){ if (!drawnSet.has(i)) arr.push(i); }
+      return arr;
+    }
+
+    const getPrize = (id) => state.prizes.find(p => p.id === id);
+
+    const nextId = () => 'p_' + Math.random().toString(36).slice(2,10);
+
+    const announce = (msg) => console.log(msg);
+
+    // ======= Rendering =======
+    function renderDrawn() {
+      drawnChips.innerHTML = '';
+      const sorted = [...state.drawn].sort((a,b)=>a-b);
+      if (sorted.length === 0) {
+        const d = document.createElement('div');
+        d.className = 'hint';
+        d.textContent = '아직 당첨 번호가 없습니다.';
+        drawnChips.appendChild(d);
+      } else {
+        for (const n of sorted) {
+          const chip = document.createElement('span');
+          chip.className = 'chip';
+          chip.innerHTML = `<span>#${pad(n)}</span>`;
+          const holder = findPrizeByWinner(n);
+          const delBtn = document.createElement('button');
+          delBtn.title = '이 번호 삭제 (재추첨 가능)';
+          delBtn.innerHTML = '×';
+          delBtn.addEventListener('click', () => removeWinner(n, holder?.id));
+          chip.appendChild(delBtn);
+          drawnChips.appendChild(chip);
+        }
+      }
+
+      const remain = getAvailable().length;
+      remainCountEl.textContent = remain;
+      leftInPoolEl.textContent = remain;
+
+      const total = state.totalCount|0;
+      statline.textContent = total ? `총 ${total}개 중 당첨 ${state.drawn.length}개 · 남은 ${remain}개` : '상단 우측 [설정]에서 총 경품 번호를 설정하세요.';
+    }
+
+    function renderPrizes() {
+      prizeTbody.innerHTML = '';
+      if (state.prizes.length === 0) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 4; td.className = 'hint'; td.textContent = '경품을 추가하려면 상단 우측 [설정]을 눌러주세요.';
+        tr.appendChild(td); prizeTbody.appendChild(tr); return;
+      }
+
+      for (const p of state.prizes) {
+        const tr = document.createElement('tr');
+
+        const tdName = document.createElement('td');
+        tdName.innerHTML = `<strong>${escapeHtml(p.name)}</strong>`;
+
+        const tdQty = document.createElement('td');
+        td.textContent = p.qty; // minor fix below
+        tdQty.textContent = p.qty;
+
+        const tdWinners = document.createElement('td');
+        const wrap = document.createElement('div');
+        wrap.className = 'winners';
+        if (!p.winners || p.winners.length === 0) {
+          const hint = document.createElement('div'); hint.className = 'hint'; hint.textContent = '아직 없음'; wrap.appendChild(hint);
+        } else {
+          for (const n of p.winners) {
+            const tag = document.createElement('span');
+            tag.className = 'tag';
+            tag.innerHTML = `<span>#${pad(n)}</span> <small>${p.name}</small>`;
+            const btn = document.createElement('button');
+            btn.innerHTML = '×'; btn.title = '이 당첨자 삭제';
+            btn.addEventListener('click', () => removeWinner(n, p.id));
+            tag.appendChild(btn);
+            wrap.appendChild(tag);
+          }
+        }
+        tdWinners.appendChild(wrap);
+
+        const tdAct = document.createElement('td');
+        const drawBtn = document.createElement('button');
+        drawBtn.className = 'btn btn-primary';
+        drawBtn.textContent = '추첨';
+        drawBtn.addEventListener('click', () => beginDraw(p.id));
+        if ((p.winners?.length || 0) >= p.qty) {
+          drawBtn.disabled = true; drawBtn.textContent = '완료';
+        }
+        tdAct.append(drawBtn);
+
+        tr.append(tdName, tdQty, tdWinners, tdAct);
+        prizeTbody.appendChild(tr);
+      }
+    }
+
+    function renderSettingsPrizes() {
+      settingsPrizeTbody.innerHTML = '';
+      if (state.prizes.length === 0) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 3; td.className = 'hint'; td.textContent = '경품이 없습니다. 위 입력에서 추가하세요.';
+        tr.appendChild(td); settingsPrizeTbody.appendChild(tr); return;
+      }
+      for (const p of state.prizes) {
+        const tr = document.createElement('tr');
+        const tdName = document.createElement('td'); tdName.innerHTML = `<strong>${escapeHtml(p.name)}</strong>`;
+        const tdQty = document.createElement('td'); tdQty.textContent = p.qty;
+        const tdAct = document.createElement('td');
+        const delBtn = document.createElement('button'); delBtn.className = 'btn btn-danger'; delBtn.textContent = '경품 삭제';
+        delBtn.addEventListener('click', () => deletePrize(p.id));
+        tdAct.append(delBtn);
+        tr.append(tdName, tdQty, tdAct);
+        settingsPrizeTbody.appendChild(tr);
+      }
+    }
+
+    function renderAll() {
+      renderDrawn();
+      renderPrizes();
+      // reflect settings fields if modal is open
+      if (settingsTotalEl) settingsTotalEl.value = state.totalCount || '';
+      renderSettingsPrizes();
+      save();
+    }
+
+    // ======= Actions =======
+    function addPrize(name, qty) {
+      const _name = (name || '').trim();
+      const _qty = Math.max(1, parseInt(qty || '1', 10));
+      if (!_name) { alert('경품 이름을 입력하세요.'); return; }
+      state.prizes.push({ id: nextId(), name: _name, qty: _qty, winners: [] });
+      renderAll();
+    }
+
+    function deletePrize(id) {
+      const p = getPrize(id);
+      if (!p) return;
+      const confirmText = p.winners?.length ? `이 경품과 당첨자 ${p.winners.length}명을 모두 삭제할까요? 삭제 시 번호가 다시 풀에 반환됩니다.` : '이 경품을 삭제할까요?';
+      if (!confirm(confirmText)) return;
+      for (const n of (p.winners||[])) {
+        const idx = state.drawn.indexOf(n);
+        if (idx >= 0) state.drawn.splice(idx,1);
+      }
+      state.prizes = state.prizes.filter(x => x.id !== id);
+      renderAll();
+    }
+
+    function removeWinner(n, prizeId) {
+      if (prizeId) {
+        const p = getPrize(prizeId);
+        if (p) {
+          if (!confirm(`#${pad(n)} 당첨자를 삭제할까요?`)) return;
+          p.winners = (p.winners||[]).filter(x => x !== n);
+        }
+      } else {
+        const holder = findPrizeByWinner(n);
+        if (holder) {
+          if (!confirm(`#${pad(n)} (경품: ${holder.name}) 당첨자를 삭제할까요?`)) return;
+          holder.winners = holder.winners.filter(x => x !== n);
+        } else {
+          if (!confirm(`#${pad(n)} 번호를 삭제할까요?`)) return;
+        }
+      }
+      const idx = state.drawn.indexOf(n);
+      if (idx >= 0) state.drawn.splice(idx,1);
+      renderAll();
+    }
+
+    function findPrizeByWinner(n) { return state.prizes.find(p => (p.winners||[]).includes(n)); }
+
+    function beginDraw(prizeId) {
+      currentPrizeId = prizeId;
+      const p = getPrize(prizeId);
+      if (!p) return;
+      if ((p.winners?.length||0) >= p.qty) { alert('이미 해당 경품의 추첨이 완료되었습니다.'); return; }
+      if ((state.totalCount|0) <= 0) { alert('먼저 [설정]에서 총 경품 번호를 설정하세요.'); return; }
+      if (getAvailable().length <= 0) { alert('남은 번호가 없습니다.'); return; }
+      openDrawModal();
+      spin();
+    }
+
+    function openDrawModal() {
+      drawModal.classList.add('show');
+      modalTitle.textContent = '추첨 중…';
+      modalSub.style.visibility = 'visible';
+      confirmBtn.disabled = true; retryBtn.disabled = true;
+      finalPick = null; spinning = true;
+    }
+
+    function closeDrawModal() { drawModal.classList.remove('show'); }
+
+    function randomFrom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+    function spin() {
+      const available = getAvailable();
+      if (available.length === 0) { alert('남은 번호가 없습니다.'); closeDrawModal(); return; }
+      leftInPoolEl.textContent = available.length;
+
+      const start = performance.now();
+      const duration = 2200; // ms
+      const easeOut = t => 1 - Math.pow(1 - t, 3);
+
+      function tick(now) {
+        const t = Math.min(1, (now - start) / duration);
+        const speed = 30 + 220 * (1 - easeOut(t));
+        if ((now % speed) < 16) {
+          spinNumberEl.textContent = pad(randomFrom(available));
+        }
+        if (t < 1 && spinning) {
+          requestAnimationFrame(tick);
+        } else {
+          // Finalize pick
+          const available2 = getAvailable();
+          if (available2.length === 0) { alert('남은 번호가 없습니다.'); closeDrawModal(); return; }
+          finalPick = randomFrom(available2);
+          spinNumberEl.textContent = pad(finalPick);
+          modalTitle.textContent = '당첨 번호';
+          confirmBtn.disabled = false; 
+          retryBtn.disabled = available2.length <= 1; // can retry only if another number exists
+          spinning = false; // <-- 중요: 재추첨 동작하도록 고침
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+
+    // Modal buttons
+    confirmBtn.addEventListener('click', () => {
+      if (!Number.isInteger(finalPick)) return;
+      const p = getPrize(currentPrizeId);
+      if (!p) return;
+      p.winners = p.winners || [];
+      if (p.winners.length >= p.qty) { alert('이미 해당 경품의 추첨이 완료되었습니다.'); return; }
+      if (!state.drawn.includes(finalPick)) state.drawn.push(finalPick);
+      p.winners.push(finalPick);
+      announce(`${p.name} 당첨: #${pad(finalPick)}`);
+      renderAll();
+      closeDrawModal();
+    });
+
+    // 요청사항 2: 재추첨해도 현재 번호를 "뽑힌 번호"에 저장
+    retryBtn.addEventListener('click', () => {
+      if (spinning) return; // 스핀 중에는 무시
+      // 현재 표시된 번호를 글로벌 drawn에 저장(해당 경품 당첨자로는 확정하지 않음)
+      if (Number.isInteger(finalPick) && !state.drawn.includes(finalPick)) {
+        state.drawn.push(finalPick);
+        announce(`재추첨: 기존 번호 #${pad(finalPick)}는 뽑힌 번호에 저장됨`);
+        renderDrawn(); // 전체 렌더링까지는 필요없고 배너만 업데이트
+      }
+      // 다음 번호 스핀
+      spinning = true; finalPick = null; confirmBtn.disabled = true; retryBtn.disabled = true; modalTitle.textContent = '재추첨 중…';
+      spin();
+    });
+
+    cancelBtn.addEventListener('click', closeDrawModal);
+    drawModal.addEventListener('click', (e)=>{ if (e.target === drawModal) closeDrawModal(); });
+
+    // ======= Settings Modal =======
+    function openSettings(){ settingsModal.classList.add('show'); renderAll(); }
+    function closeSettings(){ settingsModal.classList.remove('show'); }
+
+    openSettingsBtn.addEventListener('click', openSettings);
+    settingsCloseBtn.addEventListener('click', closeSettings);
+    settingsSaveBtn.addEventListener('click', () => { save(); closeSettings(); });
+
+    settingsAddPrizeBtn.addEventListener('click', () => {
+      addPrize(settingsPrizeNameEl.value, settingsPrizeQtyEl.value);
+      settingsPrizeNameEl.value = ''; settingsPrizeQtyEl.value = '1';
+    });
+
+    settingsTotalEl.addEventListener('change', () => {
+      state.totalCount = Math.max(0, parseInt(settingsTotalEl.value||'0',10));
+      renderAll();
+    });
+
+    settingsResetBtn.addEventListener('click', () => {
       if (!confirm('정말 초기화할까요? 모든 당첨 기록과 경품 설정이 삭제됩니다.')) return;
       state = { totalCount: 0, prizes: [], drawn: [] }; renderAll();
     });
 
+    // ======= Export/Import =======
+    exportBtn.addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'snupool_raffle_state.json'; a.click();
+      URL.revokeObjectURL(url);
+    });
+    importBtn.addEventListener('click', async () => {
+      const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'application/json';
+      inp.onchange = async () => {
+        const file = inp.files?.[0]; if (!file) return;
+        try {
+          const text = await file.text(); const obj = JSON.parse(text);
+          if (typeof obj !== 'object' || obj === null) throw new Error('Invalid');
+          state = { totalCount: +obj.totalCount||0, prizes: obj.prizes||[], drawn: obj.drawn||[] };
+          renderAll();
+        } catch(e) { alert('가져오기 실패: ' + e.message); }
+      };
+      inp.click();
+    });
+
     // ======= Utils =======
-    function escapeHtml(s){
-      return s.replace(/[&<>"']/g, (m)=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
-    }
+    function escapeHtml(s){ return s.replace(/[&<>"']/g, (m)=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); }
 
     // ======= Init =======
     load();
-    // Safety normalize
     state.prizes = (state.prizes||[]).map(p=>({ id: p.id||nextId(), name: String(p.name||''), qty: Math.max(1, p.qty|0), winners: Array.isArray(p.winners) ? p.winners.filter(Number.isInteger) : [] }));
     state.drawn = Array.isArray(state.drawn) ? state.drawn.filter(Number.isInteger) : [];
-    renderAll();
 
-    // Demo tip (only when empty)
+    // Seed small example first time only
     if (!state.totalCount && state.prizes.length === 0 && state.drawn.length === 0) {
-      // seed with a tiny example to guide first-time users
       state.totalCount = 300;
       state.prizes.push({ id: nextId(), name: '수영모', qty: 3, winners: [] });
-      renderAll();
     }
+
+    renderAll();
   </script>
 </body>
 </html>
